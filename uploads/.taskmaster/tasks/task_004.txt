@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Design and Implement UI Layout and Theme
-# Status: done
+# Status: pending
 # Dependencies: 1
 # Priority: medium
 # Description: Create a responsive, racing-themed dark mode UI layout following the design requirements.
