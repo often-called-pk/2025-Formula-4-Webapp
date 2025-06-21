@@ -1,5 +1,5 @@
 {
-  "timeline_index": 26,
+  "timeline_index": 30,
   "planner": {
     "Data Analyst": {
       "1": {
@@ -10,9 +10,10 @@
         "code": "",
         "result": "",
         "is_success": false,
-        "is_finished": false,
+        "is_finished": true,
         "assignee": "David",
-        "start_at": 1750533029.603599
+        "start_at": 1750533029.603599,
+        "end_at": 1750533061.6638129
       },
       "current_task_id": "1",
       "2": {
@@ -73,7 +74,11 @@
     "23": 1,
     "24": 1,
     "25": 1,
-    "26": 1
+    "26": 1,
+    "27": 1,
+    "28": 1,
+    "29": 1,
+    "30": 1
   },
   "preview_servers": {},
   "preview_server": null
