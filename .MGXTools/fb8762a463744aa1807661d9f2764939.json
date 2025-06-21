@@ -1,0 +1,13 @@
+{
+    "resource": {
+        "block": "Editor",
+        "uuid": "e33f65bb-ce47-4ae5-b906-87db02b082f6",
+        "enable_llm_stream": false,
+        "callback_url": ""
+    },
+    "current_file": null,
+    "current_line": 1,
+    "window": 50,
+    "enable_auto_lint": true,
+    "working_dir": "/data/chats/ur9ydd/workspace"
+}

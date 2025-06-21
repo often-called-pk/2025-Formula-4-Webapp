@@ -1,0 +1,255 @@
+classDiagram
+    class AuthService {
+        +login(email: str, password: str) AuthResponse
+        +register(userData: UserData) AuthResponse
+        +logout() bool
+        +getCurrentUser() User
+        +validateToken(token: str) bool
+    }
+
+    class User {
+        +id: str
+        +email: str
+        +name: str
+        +role: UserRole
+        +teamId: str
+        +createdAt: datetime
+        +updatedAt: datetime
+    }
+
+    class Team {
+        +id: str
+        +name: str
+        +ownerId: str
+        +members: List[User]
+        +createdAt: datetime
+        +addMember(userId: str) bool
+        +removeMember(userId: str) bool
+    }
+
+    class FileUploadService {
+        +uploadFile(file: File, metadata: dict) UploadResponse
+        +validateFile(file: File) ValidationResult
+        +processFile(fileId: str) ProcessingResult
+        +getUploadStatus(uploadId: str) UploadStatus
+    }
+
+    class TelemetryFile {
+        +id: str
+        +fileName: str
+        +fileSize: int
+        +uploadedBy: str
+        +uploadedAt: datetime
+        +status: FileStatus
+        +metadata: TelemetryMetadata
+        +processingLogs: List[ProcessingLog]
+    }
+
+    class TelemetryMetadata {
+        +driverName: str
+        +sessionType: str
+        +trackName: str
+        +carNumber: int
+        +sessionDate: datetime
+        +totalLaps: int
+        +fastestLapTime: float
+        +extractMetadata(csvContent: str) TelemetryMetadata
+    }
+
+    class DataProcessor {
+        +processCSV(filePath: str) TelemetryData
+        +extractFastestLap(data: TelemetryData) LapData
+        +normalizeData(data: TelemetryData) TelemetryData
+        +interpolateOverDistance(data: LapData) LapData
+        +interpolateOverTime(data: LapData) LapData
+        +calculateDeltas(lap1: LapData, lap2: LapData) DeltaData
+    }
+
+    class TelemetryData {
+        +id: str
+        +fileId: str
+        +rawData: List[DataPoint]
+        +processedData: List[DataPoint]
+        +laps: List[LapData]
+        +metadata: TelemetryMetadata
+        +createdAt: datetime
+    }
+
+    class LapData {
+        +lapNumber: int
+        +lapTime: float
+        +isFastestLap: bool
+        +dataPoints: List[DataPoint]
+        +startTime: float
+        +endTime: float
+        +distance: float
+        +calculateLapTime() float
+        +getDataInRange(startTime: float, endTime: float) List[DataPoint]
+    }
+
+    class DataPoint {
+        +timestamp: float
+        +gpsSpeed: float
+        +gpsLatitude: float
+        +gpsLongitude: float
+        +gpsAltitude: float
+        +engineRPM: int
+        +throttlePosition: float
+        +brakePosition: float
+        +steeringPosition: float
+        +gear: int
+        +waterTemp: float
+        +oilTemp: float
+        +oilPressure: float
+        +batteryVoltage: float
+        +lateralAcceleration: float
+        +longitudinalAcceleration: float
+        +distance: float
+    }
+
+    class AnalysisEngine {
+        +compareDrivers(driver1Data: LapData, driver2Data: LapData) ComparisonResult
+        +classifyDriverActions(lapData: LapData) List[DriverAction]
+        +calculateOversteerUndersteer(lapData: LapData) List[HandlingMetric]
+        +analyzeSectorDominance(lap1: LapData, lap2: LapData) SectorAnalysis
+        +generateTrackMap(lapData: LapData) TrackMap
+    }
+
+    class ComparisonResult {
+        +driver1: str
+        +driver2: str
+        +deltaData: DeltaData
+        +speedComparison: SpeedComparison
+        +sectorAnalysis: SectorAnalysis
+        +handlingMetrics: List[HandlingMetric]
+        +generatedAt: datetime
+    }
+
+    class DeltaData {
+        +timeDeltas: List[float]
+        +distancePoints: List[float]
+        +cumulativeDelta: List[float]
+        +maxGain: float
+        +maxLoss: float
+        +totalTimeDifference: float
+    }
+
+    class DriverAction {
+        +timestamp: float
+        +distance: float
+        +actionType: ActionType
+        +intensity: float
+        +duration: float
+    }
+
+    class HandlingMetric {
+        +timestamp: float
+        +distance: float
+        +oversteerValue: float
+        +understeerValue: float
+        +confidence: float
+        +turnRadius: float
+    }
+
+    class SectorAnalysis {
+        +sectors: List[TrackSector]
+        +dominanceMap: dict
+        +overallWinner: str
+        +timeGainsLosses: dict
+    }
+
+    class TrackSector {
+        +sectorNumber: int
+        +startDistance: float
+        +endDistance: float
+        +winner: str
+        +timeDifference: float
+        +averageSpeed1: float
+        +averageSpeed2: float
+    }
+
+    class TrackMap {
+        +coordinates: List[Coordinate]
+        +elevation: List[float]
+        +sectors: List[TrackSector]
+        +totalDistance: float
+        +generateThreeD() ThreeDMap
+    }
+
+    class Coordinate {
+        +latitude: float
+        +longitude: float
+        +altitude: float
+        +distance: float
+        +timestamp: float
+    }
+
+    class VisualizationService {
+        +generateSpeedChart(comparisonData: ComparisonResult) ChartData
+        +generateDeltaChart(deltaData: DeltaData) ChartData
+        +generateTrackMap(trackMap: TrackMap) MapVisualization
+        +generateActionTimeline(actions: List[DriverAction]) TimelineData
+        +generateSectorDominance(sectorAnalysis: SectorAnalysis) DominanceChart
+    }
+
+    class ChartData {
+        +datasets: List[Dataset]
+        +labels: List[str]
+        +options: ChartOptions
+        +type: ChartType
+    }
+
+    class Dataset {
+        +label: str
+        +data: List[float]
+        +borderColor: str
+        +backgroundColor: str
+        +fill: bool
+    }
+
+    class APIController {
+        +uploadTelemetry(request: UploadRequest) APIResponse
+        +getAnalysis(analysisId: str) APIResponse
+        +compareDrivers(request: ComparisonRequest) APIResponse
+        +getVisualization(request: VisualizationRequest) APIResponse
+        +exportResults(request: ExportRequest) APIResponse
+    }
+
+    class DatabaseService {
+        +saveTelemetryData(data: TelemetryData) bool
+        +getTelemetryById(id: str) TelemetryData
+        +saveAnalysisResult(result: ComparisonResult) bool
+        +getUserAnalyses(userId: str) List[ComparisonResult]
+        +deleteExpiredData() int
+    }
+
+    class CacheService {
+        +setCache(key: str, value: any, ttl: int) bool
+        +getCache(key: str) any
+        +invalidateCache(pattern: str) bool
+        +getCachedAnalysis(key: str) ComparisonResult
+    }
+
+    %% Relationships
+    User ||--o{ Team : belongs_to
+    Team ||--o{ TelemetryFile : owns
+    User ||--o{ TelemetryFile : uploads
+    TelemetryFile ||--|| TelemetryMetadata : contains
+    TelemetryFile ||--|| TelemetryData : generates
+    TelemetryData ||--o{ LapData : contains
+    LapData ||--o{ DataPoint : contains
+    AnalysisEngine ..> ComparisonResult : creates
+    ComparisonResult ||--|| DeltaData : contains
+    ComparisonResult ||--|| SectorAnalysis : contains
+    ComparisonResult ||--o{ HandlingMetric : contains
+    SectorAnalysis ||--o{ TrackSector : contains
+    TrackMap ||--o{ Coordinate : contains
+    VisualizationService ..> ChartData : generates
+    ChartData ||--o{ Dataset : contains
+    APIController ..> DatabaseService : uses
+    APIController ..> CacheService : uses
+    APIController ..> FileUploadService : uses
+    APIController ..> AnalysisEngine : uses
+    DataProcessor ..> TelemetryData : processes
+    FileUploadService ..> DataProcessor : triggers
+    AnalysisEngine ..> TrackMap : generates
