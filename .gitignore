@@ -49,4 +49,3 @@ test-results/
 pnpm-lock.yaml
 *.pyc
 __pycache__
-.timeline.json
