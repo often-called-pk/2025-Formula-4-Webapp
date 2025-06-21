@@ -1,0 +1,345 @@
+classDiagram
+    class AuthService {
+        +login(email: str, password: str) AuthResponse
+        +register(userData: UserData) AuthResponse
+        +logout() bool
+        +getCurrentUser() User
+        +validateToken(token: str) bool
+    }
+
+    class User {
+        +id: str
+        +email: str
+        +name: str
+        +role: UserRole
+        +teamId: str
+        +createdAt: datetime
+        +updatedAt: datetime
+    }
+
+    class Team {
+        +id: str
+        +name: str
+        +ownerId: str
+        +members: List[User]
+        +createdAt: datetime
+        +addMember(userId: str) bool
+        +removeMember(userId: str) bool
+    }
+
+    class FileUploadService {
+        +uploadFile(file: File, metadata: dict) UploadResponse
+        +validateFile(file: File) ValidationResult
+        +processFile(fileId: str) ProcessingResult
+        +getUploadStatus(uploadId: str) UploadStatus
+        +parseAiMCSV(filePath: str) TelemetryData
+        +extractMetadataFromAiM(csvContent: str) TelemetryMetadata
+    }
+
+    class TelemetryFile {
+        +id: str
+        +fileName: str
+        +fileSize: int
+        +uploadedBy: str
+        +uploadedAt: datetime
+        +status: FileStatus
+        +format: str
+        +metadata: TelemetryMetadata
+        +processingLogs: List[ProcessingLog]
+    }
+
+    class TelemetryMetadata {
+        +driverName: str
+        +sessionType: str
+        +trackName: str
+        +carNumber: int
+        +vehicle: str
+        +championship: str
+        +sessionDate: datetime
+        +totalLaps: int
+        +fastestLapTime: float
+        +beaconMarkers: List[float]
+        +segmentTimes: List[str]
+        +extractMetadata(csvContent: str) TelemetryMetadata
+        +parseAiMHeader(csvRows: List[List[str]]) TelemetryMetadata
+    }
+
+    class DataProcessor {
+        +processCSV(filePath: str) TelemetryData
+        +processAiMFormat(csvRows: List[List[str]]) TelemetryData
+        +extractFastestLap(data: TelemetryData) LapData
+        +normalizeData(data: TelemetryData) TelemetryData
+        +interpolateOverDistance(data: LapData) LapData
+        +interpolateOverTime(data: LapData) LapData
+        +calculateDeltas(lap1: LapData, lap2: LapData) DeltaData
+        +validateDataIntegrity(dataPoints: List[DataPoint]) ValidationResult
+    }
+
+    class TelemetryData {
+        +id: str
+        +fileId: str
+        +rawData: List[DataPoint]
+        +processedData: List[DataPoint]
+        +laps: List[LapData]
+        +metadata: TelemetryMetadata
+        +parameterCount: int
+        +dataStartRow: int
+        +createdAt: datetime
+    }
+
+    class LapData {
+        +lapNumber: int
+        +lapTime: float
+        +isFastestLap: bool
+        +dataPoints: List[DataPoint]
+        +startTime: float
+        +endTime: float
+        +distance: float
+        +calculateLapTime() float
+        +getDataInRange(startTime: float, endTime: float) List[DataPoint]
+        +calculateSectorTimes() List[float]
+    }
+
+    class DataPoint {
+        +timestamp: float
+        %% GPS Core Data
+        +gpsSpeed: float
+        +gpsNsat: int
+        +gpsLatAcc: float
+        +gpsLonAcc: float
+        +gpsSlope: float
+        +gpsHeading: float
+        +gpsGyro: float
+        +gpsAltitude: float
+        +gpsPosAccuracy: float
+        +gpsSpdAccuracy: float
+        +gpsRadius: float
+        +gpsLatitude: float
+        +gpsLongitude: float
+        %% Temperature Sensors
+        +loggerTemp: float
+        +waterTemp: float
+        +headTemp: float
+        +exhaustTemp: float
+        +oilTemp: float
+        %% Engine Data
+        +engineRPM: int
+        +vehicleSpeed: float
+        +gear: int
+        +throttlePos: float
+        +lambda: float
+        %% Pressure Systems
+        +oilPress: float
+        +brakePress: float
+        %% Control Positions
+        +brakePos: float
+        +clutchPos: float
+        +steeringPos: float
+        %% Acceleration Data
+        +lateralAcc: float
+        +inlineAcc: float
+        +verticalAcc: float
+        %% Power and Fuel
+        +battery: float
+        +batteryVoltage: float
+        +fuelLevel: float
+        %% Distance Tracking
+        +distanceOnGpsSpeed: float
+        +distanceOnVehicleSpeed: float
+        %% System Data
+        +predictiveTime: float
+        +predictiveTimeAlt: float
+    }
+
+    class AnalysisEngine {
+        +compareDrivers(driver1Data: LapData, driver2Data: LapData) ComparisonResult
+        +classifyDriverActions(lapData: LapData) List[DriverAction]
+        +calculateOversteerUndersteer(lapData: LapData) List[HandlingMetric]
+        +analyzeSectorDominance(lap1: LapData, lap2: LapData) SectorAnalysis
+        +generateTrackMap(lapData: LapData) TrackMap
+        +analyzeLambdaEfficiency(lapData: LapData) EngineEfficiencyMetrics
+        +analyzeBrakingPerformance(lapData: LapData) BrakingMetrics
+        +analyzeCorneringMetrics(lapData: LapData) CorneringMetrics
+    }
+
+    class ComparisonResult {
+        +driver1: str
+        +driver2: str
+        +deltaData: DeltaData
+        +speedComparison: SpeedComparison
+        +sectorAnalysis: SectorAnalysis
+        +handlingMetrics: List[HandlingMetric]
+        +engineMetrics: EngineEfficiencyMetrics
+        +brakingMetrics: BrakingMetrics
+        +generatedAt: datetime
+    }
+
+    class DeltaData {
+        +timeDeltas: List[float]
+        +distancePoints: List[float]
+        +cumulativeDelta: List[float]
+        +maxGain: float
+        +maxLoss: float
+        +totalTimeDifference: float
+    }
+
+    class DriverAction {
+        +timestamp: float
+        +distance: float
+        +actionType: ActionType
+        +intensity: float
+        +duration: float
+        +throttleApplication: float
+        +brakeApplication: float
+        +clutchUsage: float
+    }
+
+    class HandlingMetric {
+        +timestamp: float
+        +distance: float
+        +oversteerValue: float
+        +understeerValue: float
+        +confidence: float
+        +turnRadius: float
+        +lateralGForce: float
+        +verticalGForce: float
+    }
+
+    class EngineEfficiencyMetrics {
+        +averageLambda: float
+        +lambdaConsistency: float
+        +fuelConsumptionRate: float
+        +powerBand: PowerBandAnalysis
+        +thermalManagement: ThermalAnalysis
+    }
+
+    class BrakingMetrics {
+        +maxBrakePressure: float
+        +averageBrakePressure: float
+        +brakingZones: List[BrakingZone]
+        +brakingEfficiencyScore: float
+        +trailBrakingMetrics: TrailBrakingData
+    }
+
+    class CorneringMetrics {
+        +apexSpeed: float
+        +cornerEntrySpeed: float
+        +cornerExitSpeed: float
+        +steeringAngleData: SteeringAnalysis
+        +gForceProfile: GForceProfile
+    }
+
+    class SectorAnalysis {
+        +sectors: List[TrackSector]
+        +dominanceMap: dict
+        +overallWinner: str
+        +timeGainsLosses: dict
+    }
+
+    class TrackSector {
+        +sectorNumber: int
+        +startDistance: float
+        +endDistance: float
+        +winner: str
+        +timeDifference: float
+        +averageSpeed1: float
+        +averageSpeed2: float
+    }
+
+    class TrackMap {
+        +coordinates: List[Coordinate]
+        +elevation: List[float]
+        +sectors: List[TrackSector]
+        +totalDistance: float
+        +generateThreeD() ThreeDMap
+        +calculateBankingAngles() List[float]
+    }
+
+    class Coordinate {
+        +latitude: float
+        +longitude: float
+        +altitude: float
+        +distance: float
+        +timestamp: float
+        +heading: float
+        +slope: float
+    }
+
+    class VisualizationService {
+        +generateSpeedChart(comparisonData: ComparisonResult) ChartData
+        +generateDeltaChart(deltaData: DeltaData) ChartData
+        +generateTrackMap(trackMap: TrackMap) MapVisualization
+        +generateActionTimeline(actions: List[DriverAction]) TimelineData
+        +generateSectorDominance(sectorAnalysis: SectorAnalysis) DominanceChart
+        +generateLambdaChart(engineMetrics: EngineEfficiencyMetrics) ChartData
+        +generateGForceChart(handlingMetrics: List[HandlingMetric]) ChartData
+        +generateThermalChart(temperatures: List[float]) ChartData
+    }
+
+    class ChartData {
+        +datasets: List[Dataset]
+        +labels: List[str]
+        +options: ChartOptions
+        +type: ChartType
+    }
+
+    class Dataset {
+        +label: str
+        +data: List[float]
+        +borderColor: str
+        +backgroundColor: str
+        +fill: bool
+    }
+
+    class APIController {
+        +uploadTelemetry(request: UploadRequest) APIResponse
+        +getAnalysis(analysisId: str) APIResponse
+        +compareDrivers(request: ComparisonRequest) APIResponse
+        +getVisualization(request: VisualizationRequest) APIResponse
+        +exportResults(request: ExportRequest) APIResponse
+        +getTelemetryParameters(fileId: str) APIResponse
+        +validateTelemetryFormat(fileId: str) APIResponse
+    }
+
+    class DatabaseService {
+        +saveTelemetryData(data: TelemetryData) bool
+        +getTelemetryById(id: str) TelemetryData
+        +saveAnalysisResult(result: ComparisonResult) bool
+        +getUserAnalyses(userId: str) List[ComparisonResult]
+        +deleteExpiredData() int
+        +optimizeTelemetryQueries(query: TelemetryQuery) QueryPlan
+    }
+
+    class CacheService {
+        +setCache(key: str, value: any, ttl: int) bool
+        +getCache(key: str) any
+        +invalidateCache(pattern: str) bool
+        +getCachedAnalysis(key: str) ComparisonResult
+        +cacheProcessedTelemetry(data: TelemetryData) bool
+    }
+
+    %% Relationships
+    User ||--o{ Team : belongs_to
+    Team ||--o{ TelemetryFile : owns
+    User ||--o{ TelemetryFile : uploads
+    TelemetryFile ||--|| TelemetryMetadata : contains
+    TelemetryFile ||--|| TelemetryData : generates
+    TelemetryData ||--o{ LapData : contains
+    LapData ||--o{ DataPoint : contains
+    AnalysisEngine ..> ComparisonResult : creates
+    ComparisonResult ||--|| DeltaData : contains
+    ComparisonResult ||--|| SectorAnalysis : contains
+    ComparisonResult ||--o{ HandlingMetric : contains
+    ComparisonResult ||--|| EngineEfficiencyMetrics : contains
+    ComparisonResult ||--|| BrakingMetrics : contains
+    SectorAnalysis ||--o{ TrackSector : contains
+    TrackMap ||--o{ Coordinate : contains
+    VisualizationService ..> ChartData : generates
+    ChartData ||--o{ Dataset : contains
+    APIController ..> DatabaseService : uses
+    APIController ..> CacheService : uses
+    APIController ..> FileUploadService : uses
+    APIController ..> AnalysisEngine : uses
+    DataProcessor ..> TelemetryData : processes
+    FileUploadService ..> DataProcessor : triggers
+    AnalysisEngine ..> TrackMap : generates

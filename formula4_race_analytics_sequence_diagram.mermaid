@@ -1,0 +1,174 @@
+sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant API as APIController
+    participant Auth as AuthService
+    participant Upload as FileUploadService
+    participant Proc as DataProcessor
+    participant Engine as AnalysisEngine
+    participant Viz as VisualizationService
+    participant DB as DatabaseService
+    participant Cache as CacheService
+    participant Storage as CloudStorage
+
+    %% Authentication Flow
+    U->>FE: Access Application
+    FE->>API: Check Authentication
+    API->>Auth: Validate Token
+    Auth-->>API: Token Valid/Invalid
+    API-->>FE: Authentication Status
+    
+    alt Not Authenticated
+        FE->>U: Show Login Form
+        U->>FE: Submit Credentials
+        FE->>API: Login Request
+        API->>Auth: Authenticate User
+        Auth->>DB: Verify Credentials
+        DB-->>Auth: User Data
+        Auth-->>API: Authentication Result
+        API-->>FE: Login Response + Token
+        FE-->>U: Redirect to Dashboard
+    end
+
+    %% File Upload Flow
+    U->>FE: Select Telemetry Files
+    FE->>FE: Validate File Format
+    FE->>API: Upload Request with Metadata
+    API->>Auth: Validate User Session
+    Auth-->>API: Session Valid
+    API->>Upload: Process File Upload
+    Upload->>Storage: Store Raw File
+    Storage-->>Upload: File Stored
+    Upload->>DB: Save File Metadata
+    DB-->>Upload: Metadata Saved
+    Upload-->>API: Upload Complete
+    API-->>FE: Upload Success + FileID
+    FE-->>U: Show Upload Success
+
+    %% Data Processing Flow
+    API->>Proc: Trigger Processing (FileID)
+    Proc->>Storage: Retrieve Raw File
+    Storage-->>Proc: File Content
+    Proc->>Proc: Extract Metadata
+    Proc->>Proc: Parse CSV Data
+    Proc->>Proc: Validate Data Points
+    Proc->>Proc: Normalize Telemetry Data
+    Proc->>Proc: Extract Fastest Lap
+    Proc->>Proc: Interpolate Over Distance
+    Proc->>Proc: Interpolate Over Time
+    Proc->>DB: Save Processed Data
+    DB-->>Proc: Data Saved
+    Proc-->>API: Processing Complete
+    API-->>FE: Processing Status Update
+    FE-->>U: Show Processing Complete
+
+    %% Analysis Flow - Driver Comparison
+    U->>FE: Request Driver Comparison
+    FE->>API: Compare Drivers Request
+    API->>Cache: Check Cached Analysis
+    
+    alt Cache Hit
+        Cache-->>API: Cached Result
+        API-->>FE: Analysis Result
+    else Cache Miss
+        API->>DB: Retrieve Driver Data
+        DB-->>API: Telemetry Data
+        API->>Engine: Analyze Comparison
+        Engine->>Engine: Calculate Speed Deltas
+        Engine->>Engine: Classify Driver Actions
+        Engine->>Engine: Calculate Oversteer/Understeer
+        Engine->>Engine: Analyze Sector Dominance
+        Engine->>Engine: Generate Track Map
+        Engine-->>API: Analysis Result
+        API->>Cache: Store Analysis Result
+        API->>DB: Save Analysis Result
+        DB-->>API: Analysis Saved
+        API-->>FE: Analysis Result
+    end
+
+    %% Visualization Generation
+    FE->>API: Request Visualizations
+    API->>Viz: Generate Charts
+    Viz->>Viz: Create Speed Comparison Chart
+    Viz->>Viz: Create Delta Analysis Chart
+    Viz->>Viz: Create 3D Track Map
+    Viz->>Viz: Create Action Timeline
+    Viz->>Viz: Create Sector Dominance Chart
+    Viz->>Viz: Create Engine Vitals Charts
+    Viz->>Viz: Create Handling Metrics Chart
+    Viz-->>API: Chart Data
+    API-->>FE: Visualization Data
+    FE->>FE: Render Interactive Charts
+    FE-->>U: Display Analysis Dashboard
+
+    %% Interactive Features
+    U->>FE: Move Chart Cursor
+    FE->>FE: Sync Cursor Across Charts
+    FE->>FE: Update Track Position
+    FE-->>U: Show Synchronized Data
+
+    U->>FE: Toggle Chart Visibility
+    FE->>FE: Show/Hide Charts
+    FE-->>U: Updated Dashboard
+
+    U->>FE: Switch Y-Axis (Distance/Time)
+    FE->>FE: Recalculate Chart Data
+    FE-->>U: Updated Charts
+
+    %% Export Functionality
+    U->>FE: Request Export
+    FE->>API: Export Request
+    API->>Viz: Generate Export Data
+    Viz->>Viz: Create PNG/PDF Export
+    Viz-->>API: Export File
+    API-->>FE: Download Link
+    FE-->>U: Download Export
+
+    %% Error Handling Flows
+    note over Proc: Error During Processing
+    Proc->>DB: Log Processing Error
+    Proc-->>API: Processing Failed
+    API-->>FE: Error Response
+    FE-->>U: Show Error Message
+
+    note over Engine: Analysis Error
+    Engine->>DB: Log Analysis Error
+    Engine-->>API: Analysis Failed
+    API-->>FE: Error Response
+    FE-->>U: Show Error Message + Retry Option
+
+    %% Data Cleanup Flow
+    note over API: Scheduled Cleanup
+    API->>DB: Delete Expired Data
+    DB-->>API: Cleanup Complete
+    API->>Storage: Delete Expired Files
+    Storage-->>API: Files Deleted
+    API->>Cache: Clear Expired Cache
+    Cache-->>API: Cache Cleared
+
+    %% Real-time Progress Updates
+    note over Upload, FE: WebSocket Connection
+    Upload->>FE: Processing Progress (25%)
+    FE-->>U: Show Progress Bar
+    Proc->>FE: Processing Progress (50%)
+    FE-->>U: Update Progress Bar
+    Engine->>FE: Analysis Progress (75%)
+    FE-->>U: Update Progress Bar
+    Viz->>FE: Visualization Complete (100%)
+    FE-->>U: Show Completion + Results
+
+    %% Team Collaboration Features
+    U->>FE: Share Analysis
+    FE->>API: Generate Share Link
+    API->>DB: Create Shared Analysis Record
+    DB-->>API: Share ID
+    API-->>FE: Share URL
+    FE-->>U: Display Share Link
+
+    note over U, Storage: Team Member Access
+    U->>FE: Access Shared Analysis
+    FE->>API: Validate Share Link
+    API->>DB: Retrieve Shared Analysis
+    DB-->>API: Analysis Data
+    API-->>FE: Analysis Result
+    FE-->>U: Display Shared Analysis

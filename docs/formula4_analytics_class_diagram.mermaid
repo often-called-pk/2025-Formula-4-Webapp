@@ -1,0 +1,357 @@
+classDiagram
+    class User {
+        +String id
+        +String email
+        +String name
+        +String role
+        +String teamId
+        +String subscriptionTier
+        +Date createdAt
+        +Date lastLoginAt
+        +login(credentials: LoginCredentials) User
+        +updateProfile(data: UserProfile) User
+        +hasPermission(resource: String) Boolean
+    }
+    
+    class Team {
+        +String id
+        +String name
+        +String ownerId
+        +String subscriptionTier
+        +Integer maxUsers
+        +Integer maxStorageGB
+        +Date createdAt
+        +User[] members
+        +addMember(userId: String) Boolean
+        +removeMember(userId: String) Boolean
+        +updateSubscription(tier: String) Team
+    }
+    
+    class TelemetryFile {
+        +String id
+        +String fileName
+        +Long fileSize
+        +String format
+        +String uploadedBy
+        +String teamId
+        +String status
+        +String uploadPath
+        +String[] processingLogs
+        +Date uploadedAt
+        +Date processedAt
+        +TelemetryMetadata metadata
+        +upload(file: File) TelemetryFile
+        +process() ProcessingResult
+        +getStatus() String
+        +delete() Boolean
+    }
+    
+    class TelemetryMetadata {
+        +String id
+        +String fileId
+        +String driverName
+        +String sessionType
+        +String vehicle
+        +Integer carNumber
+        +String championship
+        +String trackName
+        +Date sessionDate
+        +String sessionTime
+        +Integer totalLaps
+        +Float fastestLapTime
+        +Float[] beaconMarkers
+        +String[] segmentTimes
+        +Integer parameterCount
+        +Integer dataStartRow
+        +extractFromFile(filePath: String) TelemetryMetadata
+        +validate() Boolean
+    }
+    
+    class TelemetryDataPoint {
+        +Long id
+        +String fileId
+        +Integer lapNumber
+        +Float timestamp
+        +Float gpsSpeed
+        +Integer gpsNsat
+        +Float gpsLatAcc
+        +Float gpsLonAcc
+        +Float gpsSlope
+        +Float gpsHeading
+        +Float gpsGyro
+        +Float gpsAltitude
+        +Float gpsPosAccuracy
+        +Float gpsSpdAccuracy
+        +Float gpsRadius
+        +Float gpsLatitude
+        +Float gpsLongitude
+        +Integer engineRpm
+        +Float vehicleSpeed
+        +Integer gear
+        +Float throttlePos
+        +Float lambdaValue
+        +Float loggerTemp
+        +Float waterTemp
+        +Float headTemp
+        +Float exhaustTemp
+        +Float oilTemp
+        +Float oilPress
+        +Float brakePress
+        +Float brakePos
+        +Float clutchPos
+        +Float steeringPos
+        +Float lateralAcc
+        +Float inlineAcc
+        +Float verticalAcc
+        +Float battery
+        +Float batteryVoltage
+        +Float fuelLevel
+        +Float distanceOnGpsSpeed
+        +Float distanceOnVehicleSpeed
+        +Float predictiveTime
+        +Float predictiveTimeAlt
+        +Date createdAt
+        +validate() Boolean
+        +interpolateMissingValues() TelemetryDataPoint
+    }
+    
+    class LapData {
+        +String id
+        +String fileId
+        +Integer lapNumber
+        +Float lapTime
+        +Boolean isFastestLap
+        +Float startTime
+        +Float endTime
+        +Float startDistance
+        +Float endDistance
+        +Float averageSpeed
+        +Float maxSpeed
+        +Integer maxRpm
+        +Float maxGForce
+        +Float fuelConsumed
+        +Date createdAt
+        +calculateMetrics(dataPoints: TelemetryDataPoint[]) LapData
+        +isValid() Boolean
+        +compareTo(other: LapData) Integer
+    }
+    
+    class ComparisonAnalysis {
+        +String id
+        +String name
+        +String driver1FileId
+        +String driver2FileId
+        +Integer driver1Lap
+        +Integer driver2Lap
+        +String createdBy
+        +Float totalTimeDifference
+        +Float maxTimeGain
+        +Float maxTimeLoss
+        +Object analysisData
+        +Date createdAt
+        +DeltaAnalysis[] deltaPoints
+        +SectorAnalysis[] sectors
+        +AdvancedMetrics advancedMetrics
+        +create(request: ComparisonRequest) ComparisonAnalysis
+        +calculate() ComparisonResult
+        +generateReport() Report
+        +export(format: String) File
+    }
+    
+    class DeltaAnalysis {
+        +String id
+        +String comparisonId
+        +Float distancePoint
+        +Float timeDelta
+        +Float cumulativeDelta
+        +Float speedDifference
+        +Date createdAt
+        +calculateDelta(d1Data: TelemetryDataPoint, d2Data: TelemetryDataPoint) Float
+        +interpolatePoints(distance: Float) DeltaAnalysis
+    }
+    
+    class SectorAnalysis {
+        +String id
+        +String comparisonId
+        +Integer sectorNumber
+        +Float startDistance
+        +Float endDistance
+        +String winner
+        +Float timeDifference
+        +Float driver1AvgSpeed
+        +Float driver2AvgSpeed
+        +Date createdAt
+        +analyzeSector(d1Data: TelemetryDataPoint[], d2Data: TelemetryDataPoint[]) SectorAnalysis
+        +getWinner() String
+    }
+    
+    class EngineMetrics {
+        +String id
+        +String lapId
+        +Float averageLambda
+        +Float lambdaConsistency
+        +Float fuelConsumptionRate
+        +Float thermalEfficiency
+        +Object powerBandUsage
+        +Date createdAt
+        +calculateLambdaEfficiency(data: TelemetryDataPoint[]) EngineMetrics
+        +analyzePowerBand(rpmData: Float[], lambdaData: Float[]) Object
+        +getFuelEfficiencyScore() Float
+    }
+    
+    class BrakingMetrics {
+        +String id
+        +String lapId
+        +Float maxBrakePressure
+        +Float averageBrakePressure
+        +Float brakingEfficiencyScore
+        +Float trailBrakingScore
+        +Object brakingZones
+        +Date createdAt
+        +analyzeBrakingPerformance(data: TelemetryDataPoint[]) BrakingMetrics
+        +identifyBrakingZones(brakeData: Float[], speedData: Float[]) Object
+        +calculateTrailBrakingScore() Float
+    }
+    
+    class HandlingMetrics {
+        +String id
+        +String lapId
+        +Float distancePoint
+        +Float oversteerValue
+        +Float understeerValue
+        +Float turnRadius
+        +Float lateralGForce
+        +Float verticalGForce
+        +Float confidence
+        +Date createdAt
+        +analyzeHandling(data: TelemetryDataPoint[]) HandlingMetrics
+        +calculateGForceEnvelope(latAcc: Float[], longAcc: Float[], vertAcc: Float[]) Object
+        +detectOverUnderSteer() Float[]
+    }
+    
+    class TrackCoordinates {
+        +String id
+        +String fileId
+        +Float distance
+        +Float latitude
+        +Float longitude
+        +Float altitude
+        +Float heading
+        +Float slope
+        +Float bankingAngle
+        +Integer sector
+        +Date createdAt
+        +generateTrackMap(gpsData: TelemetryDataPoint[]) TrackCoordinates[]
+        +calculateBankingAngle(slope: Float, heading: Float) Float
+        +interpolateElevation() TrackCoordinates
+    }
+    
+    class AiMRaceStudioParser {
+        -Map~String,String~ parameterMapping
+        -Integer EXPECTED_PARAMETERS
+        -Integer METADATA_END_ROW
+        -Integer HEADER_ROW
+        -Integer UNITS_ROW
+        -Integer DATA_START_ROW
+        +parseFile(filePath: String) ParsedData
+        +extractMetadata(filePath: String) TelemetryMetadata
+        +validateParameterCount(columns: String[]) Boolean
+        +mapColumnNames(columns: String[]) String[]
+        +validateAndCleanData(data: DataFrame) DataFrame
+        +extractLapData(data: DataFrame) LapData[]
+    }
+    
+    class AdvancedAnalyticsEngine {
+        +compareDrivers(d1Data: DataFrame, d2Data: DataFrame) ComparisonResult
+        +analyzeLambdaEfficiency(data: DataFrame) LambdaAnalysis
+        +analyzeBrakingPerformance(data: DataFrame) BrakingAnalysis
+        +analyzeGForceEnvelope(data: DataFrame) GForceAnalysis
+        +analyzeThermalManagement(data: DataFrame) ThermalAnalysis
+        +alignTelemetryByDistance(d1Data: DataFrame, d2Data: DataFrame) AlignedData
+        +calculateTimeDeltas(alignedData: AlignedData) DeltaAnalysis[]
+        +generateSummary(analysisResults: Object[]) AnalysisSummary
+    }
+    
+    class TelemetryService {
+        -AiMRaceStudioParser parser
+        -TelemetryDataValidator validator
+        -DatabaseWriter dbWriter
+        +processFile(filePath: String, fileId: String) ProcessingResult
+        +getProcessingStatus(fileId: String) String
+        +validateFile(file: File) ValidationResult
+        +storeMetadata(metadata: TelemetryMetadata) Boolean
+        +storeTelemetryData(data: TelemetryDataPoint[]) Boolean
+    }
+    
+    class APIGateway {
+        +authenticateUser(token: String) User
+        +authorizeRequest(user: User, resource: String) Boolean
+        +routeRequest(request: HttpRequest) HttpResponse
+        +handleFileUpload(request: UploadRequest) UploadResponse
+        +handleTelemetryQuery(request: DataRequest) DataResponse
+        +handleAnalysisRequest(request: AnalysisRequest) AnalysisResponse
+        +handleWebSocketConnection(connection: WebSocketConnection) Void
+    }
+    
+    class WebSocketService {
+        -Map~String,Room~ analysisRooms
+        +createRoom(analysisId: String) Room
+        +joinRoom(userId: String, analysisId: String) Boolean
+        +leaveRoom(userId: String, analysisId: String) Boolean
+        +broadcastCursorUpdate(analysisId: String, position: Float) Void
+        +broadcastParameterChange(analysisId: String, parameters: String[]) Void
+        +handleUserDisconnect(userId: String) Void
+    }
+    
+    class FileStorageService {
+        +uploadFile(file: File, path: String) String
+        +downloadFile(path: String) File
+        +deleteFile(path: String) Boolean
+        +getFileMetadata(path: String) FileMetadata
+        +generatePresignedUrl(path: String, expiry: Integer) String
+    }
+    
+    class CacheService {
+        +get(key: String) Object
+        +set(key: String, value: Object, ttl: Integer) Boolean
+        +delete(key: String) Boolean
+        +exists(key: String) Boolean
+        +flush() Boolean
+    }
+    
+    class ReportGenerator {
+        +generateComparisonReport(analysis: ComparisonAnalysis) Report
+        +generateSessionReport(file: TelemetryFile) Report
+        +exportToPDF(report: Report) File
+        +exportToCSV(data: Object) File
+        +generateCharts(data: Object) Chart[]
+    }
+    
+    %% Relationships
+    User ||--o{ Team : belongs_to
+    Team ||--o{ TelemetryFile : owns
+    User ||--o{ TelemetryFile : uploads
+    TelemetryFile ||--|| TelemetryMetadata : has
+    TelemetryFile ||--o{ TelemetryDataPoint : contains
+    TelemetryFile ||--o{ LapData : has
+    TelemetryFile ||--o{ TrackCoordinates : generates
+    
+    ComparisonAnalysis ||--o{ DeltaAnalysis : contains
+    ComparisonAnalysis ||--o{ SectorAnalysis : contains
+    LapData ||--|| EngineMetrics : has
+    LapData ||--|| BrakingMetrics : has
+    LapData ||--o{ HandlingMetrics : has
+    
+    TelemetryService --> AiMRaceStudioParser : uses
+    TelemetryService --> FileStorageService : uses
+    APIGateway --> TelemetryService : calls
+    APIGateway --> AdvancedAnalyticsEngine : calls
+    APIGateway --> CacheService : uses
+    AdvancedAnalyticsEngine --> ComparisonAnalysis : creates
+    ReportGenerator --> ComparisonAnalysis : uses
+    WebSocketService --> APIGateway : integrates
+    
+    TelemetryFile --> TelemetryDataPoint : "1" --> "*"
+    ComparisonAnalysis --> TelemetryFile : "1" --> "2"
+    User --> ComparisonAnalysis : creates
+    Team --> User : "1" --> "*"
