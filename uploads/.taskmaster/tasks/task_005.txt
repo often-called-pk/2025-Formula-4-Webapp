@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement CSV File Upload and Storage
-# Status: done
+# Status: pending
 # Dependencies: 2, 3, 4
 # Priority: high
 # Description: Create a file upload system for telemetry CSV files with validation and storage in Supabase.
