@@ -1,0 +1,13 @@
+{
+    "resource": {
+        "block": "Editor",
+        "uuid": "e0ec99ea-4873-4a0f-bd59-83a3dbe223d4",
+        "enable_llm_stream": false,
+        "callback_url": ""
+    },
+    "current_file": null,
+    "current_line": 1,
+    "window": 50,
+    "enable_auto_lint": true,
+    "working_dir": "../workspace"
+}
