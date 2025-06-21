@@ -238,6 +238,27 @@
                         ]
                     }
                 ]
+            },
+            {
+                "id": "d0bce08a",
+                "cell_type": "code",
+                "metadata": {
+                    "execution": {
+                        "iopub.status.busy": "2025-06-21T15:08:13.393252Z",
+                        "iopub.execute_input": "2025-06-21T15:08:13.393811Z",
+                        "shell.execute_reply": "2025-06-21T15:08:20.485535Z",
+                        "iopub.status.idle": "2025-06-21T15:08:20.486930Z"
+                    }
+                },
+                "execution_count": 1,
+                "source": "import pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom pathlib import Path\nimport warnings\nwarnings.filterwarnings('ignore')\n\n# Set up plotting style\nplt.style.use('default')\nsns.set_palette(\"husl\")\n\n# Load the telemetry files\naqil_file = \"/data/chats/ur9ydd/workspace/uploads/Aqil Alibhai Round 3 Race 1 Telemetry.csv\"\njaden_file = \"/data/chats/ur9ydd/workspace/uploads/Jaden Pariat Round 3 Race 1 Telemetry.csv\"\n\nprint(\"=== Formula 4 Telemetry Analysis ===\")\nprint(\"Loading telemetry data files...\")\n\n# First, let's examine the file structure to understand the AiM format\nprint(\"\\n1. EXAMINING FILE STRUCTURE\")\nprint(\"-\" * 50)\n\nwith open(aqil_file, 'r') as f:\n    first_20_lines = [f.readline().strip() for _ in range(20)]\n    \nprint(\"First 20 lines of Aqil's telemetry file:\")\nfor i, line in enumerate(first_20_lines, 1):\n    print(f\"Row {i:2d}: {line}\")",
+                "outputs": [
+                    {
+                        "output_type": "stream",
+                        "name": "stdout",
+                        "text": "=== Formula 4 Telemetry Analysis ===\nLoading telemetry data files...\n\n1. EXAMINING FILE STRUCTURE\n--------------------------------------------------\nFirst 20 lines of Aqil's telemetry file:\nRow  1: Format,AiM CSV File,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  2: Session,MMSC Full,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  3: Vehicle,Mygale F4 Spec 2 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  4: Racer,Aqil AliBhai ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  5: Championship,Indian F4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  6: Comment,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  7: Date,\"Saturday, September 14, 2024\",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  8: Time,2:44 PM,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow  9: Sample Rate,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow 10: Duration,2037.99,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow 11: Segment,Session,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow 12: Beacon Markers,60.259,249.47,353.409,454.545,555.487,656.445,757.545,858.455,959.281,1060.19,1161.19,1262.24,1362.96,1463.69,1564.65,1665.51,1766.69,1868.13,2011.88,2037.99,,,,,,,,,,,,,,,,,,\nRow 13: Segment Times,01:00.3,03:09.2,01:43.9,01:41.1,01:40.9,01:41.0,01:41.1,01:40.9,01:40.8,01:40.9,01:41.0,01:41.1,01:40.7,01:40.7,01:41.0,01:40.9,01:41.2,01:41.4,02:23.7,00:26.1,,,,,,,,,,,,,,,,,,\nRow 14: ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow 15: Time,GPS Speed,GPS Nsat,GPS LatAcc,GPS LonAcc,GPS Slope,GPS Heading,GPS Gyro,GPS Altitude,GPS PosAccuracy,GPS SpdAccuracy,GPS Radius,GPS Latitude,GPS Longitude,LoggerTemp,Battery,Predictive Time,#NAME?,Engine RPM,Speed,Gear,Water Temp,Head Temp,Exhaust Temp,Oil Temp,Oil Press,Brake Press,Throttle Pos,Brake Pos,Clutch Pos,Steering Pos,Lambda,Lateral Acc,Inline Acc,Fuel Level,Battery Voltage,Vertical Acc,Distance on GPS Speed,Distance on Vehicle Speed\nRow 16: s,km/h, ,g,g,deg,deg,deg/s,m,mm,km/h,m,deg,deg,°C,V, , ,rpm,km/h,gear,°C,°C,°C,°C,bar,bar,%,%,%,deg,lambda,g,g,%,V,g,m,m\nRow 17: ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nRow 18: 0,0.036,15,0,0,-73.6406,-38.1305,0,-35.748,5.8,0.06,10000,13.00101604,79.9898518,62.8405,3.8556,103666,-227,1529,0,0,101.1,59.6,59.6,89.8,2.82,-0.25,-1,-1,0,1,0,-0.02,0.48,0,12.3,0,0,0\nRow 19: 0.05,0.036,15,0,0,-73.6406,-38.1305,0,-35.748,5.8,0.06,10000,13.00101604,79.9898518,62.8405,3.8556,103666,-227,1529,0,0,101.1,59.6,59.6,89.8,2.82,-0.25,-1,-1,0,1,0,-0.02,0.48,0,12.3,0,0.0005,0\nRow 20: 0.1,0.036,15,0,0,-73.6406,-38.1305,0,-35.748,5.8,0.06,10000,13.00101604,79.9898518,62.8405,3.8556,103666,-227,1529,0,0,101.1,59.6,59.6,89.8,2.82,-0.25,-1,-1,0,1,0,-0.02,0.48,0,12.3,0,0.001,0\n"
+                    }
+                ]
             }
         ]
     },

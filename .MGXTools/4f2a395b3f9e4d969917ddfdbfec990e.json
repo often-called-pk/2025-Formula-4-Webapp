@@ -2,7 +2,7 @@
     "tabs": {
         "00": {
             "tab_id": "00",
-            "cwd": "/workspace",
+            "cwd": "/data/chats/ur9ydd/workspace",
             "observer": {
                 "block": "Terminal",
                 "uuid": "c119590b-f95b-4ad7-bef5-e2ddd296eb90",
