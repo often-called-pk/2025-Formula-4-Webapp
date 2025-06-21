@@ -1,0 +1,13 @@
+{
+    "resource": {
+        "block": "Editor",
+        "uuid": "c6bf5f2f-08ac-42f9-97b6-f08a82013eab",
+        "enable_llm_stream": false,
+        "callback_url": ""
+    },
+    "current_file": null,
+    "current_line": 1,
+    "window": 50,
+    "enable_auto_lint": true,
+    "working_dir": "/data/chats/pc7yh/workspace/dashboard"
+}

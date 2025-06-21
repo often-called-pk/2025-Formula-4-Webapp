@@ -3,36 +3,70 @@ import F4Dashboard from './components/F4Dashboard';
 import TelemetryUpload from './components/TelemetryUpload';
 import DriverComparison from './components/DriverComparison';
 import SessionManager from './components/SessionManager';
-import { Racing, Upload, BarChart3, Settings, Users, Trophy } from 'lucide-react';
+import { useAuthContext } from './contexts/AuthContext.jsx';
+import { useSupabase } from './hooks/useSupabase.js';
+import { Racing, Upload, BarChart3, Settings, Users, Trophy, LogOut, User } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sessions, setSessions] = useState([]);
   const [selectedSessions, setSelectedSessions] = useState([]);
-  const [user, setUser] = useState({
-    name: 'Race Engineer',
-    role: 'engineer',
-    team: 'Formula 4 Racing Team'
-  });
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const { user, profile, isAuthenticated, signOut, onlineUsers, getOnlineUserCount } = useAuthContext();
+  const { getSessions, deleteSession, error: supabaseError } = useSupabase();
 
+  // Load sessions from Supabase when component mounts or user changes
   useEffect(() => {
-    // Load saved sessions from localStorage
-    const savedSessions = localStorage.getItem('f4_telemetry_sessions');
-    if (savedSessions) {
-      setSessions(JSON.parse(savedSessions));
+    if (isAuthenticated) {
+      loadSessions();
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  const handleSessionUpload = (newSession) => {
-    const updatedSessions = [...sessions, newSession];
-    setSessions(updatedSessions);
-    localStorage.setItem('f4_telemetry_sessions', JSON.stringify(updatedSessions));
+  const loadSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const { success, sessions: loadedSessions, error } = await getSessions();
+      if (success) {
+        setSessions(loadedSessions || []);
+      } else {
+        console.error('Failed to load sessions:', error);
+        setSessions([]);
+      }
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+      setSessions([]);
+    } finally {
+      setSessionsLoading(false);
+    }
   };
 
-  const handleSessionDelete = (sessionId) => {
-    const updatedSessions = sessions.filter(session => session.id !== sessionId);
-    setSessions(updatedSessions);
-    localStorage.setItem('f4_telemetry_sessions', JSON.stringify(updatedSessions));
+  const handleSessionUpload = async (newSession) => {
+    // Refresh sessions after upload
+    await loadSessions();
+  };
+
+  const handleSessionDelete = async (sessionId) => {
+    try {
+      const { success, error } = await deleteSession(sessionId);
+      if (success) {
+        // Remove from local state immediately for better UX
+        setSessions(prevSessions => prevSessions.filter(session => session.id !== sessionId));
+      } else {
+        console.error('Failed to delete session:', error);
+        // Optionally show error message to user
+      }
+    } catch (error) {
+      console.error('Error deleting session:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    const { success } = await signOut();
+    if (success) {
+      setSessions([]);
+      setSelectedSessions([]);
+      setActiveTab('dashboard');
+    }
   };
 
   const navigationItems = [
@@ -59,13 +93,31 @@ function App() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Online Users Counter */}
+              <div className="flex items-center space-x-2 text-sm text-slate-300">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>{getOnlineUserCount()} online</span>
+              </div>
+              
+              {/* User Info */}
               <div className="text-right">
-                <p className="text-sm font-medium text-white">{user.name}</p>
-                <p className="text-xs text-slate-300">{user.team}</p>
+                <p className="text-sm font-medium text-white">{profile?.name || user?.email || 'Race Engineer'}</p>
+                <p className="text-xs text-slate-300">{profile?.team || 'Formula 4 Racing Team'}</p>
               </div>
+              
+              {/* User Avatar */}
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-white" />
+                <User className="w-4 h-4 text-white" />
               </div>
+              
+              {/* Sign Out Button */}
+              <button
+                onClick={handleSignOut}
+                className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -98,31 +150,62 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        {activeTab === 'dashboard' && (
+        {/* Error Message */}
+        {supabaseError && (
+          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-red-400 text-sm">
+              <strong>Error:</strong> {supabaseError}
+            </p>
+          </div>
+        )}
+        
+        {/* Loading State */}
+        {sessionsLoading && activeTab === 'dashboard' && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-slate-300">Loading sessions...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Dashboard */}
+        {activeTab === 'dashboard' && !sessionsLoading && (
           <F4Dashboard 
             sessions={sessions} 
             selectedSessions={selectedSessions}
             onSessionSelect={setSelectedSessions}
+            loading={sessionsLoading}
+            onRefresh={loadSessions}
           />
         )}
         
+        {/* Upload */}
         {activeTab === 'upload' && (
-          <TelemetryUpload onSessionUpload={handleSessionUpload} />
+          <TelemetryUpload 
+            onSessionUpload={handleSessionUpload}
+            onRefresh={loadSessions}
+          />
         )}
         
+        {/* Compare */}
         {activeTab === 'compare' && (
           <DriverComparison 
             sessions={sessions}
             selectedSessions={selectedSessions}
             onSessionSelect={setSelectedSessions}
+            loading={sessionsLoading}
           />
         )}
         
+        {/* Sessions Manager */}
         {activeTab === 'sessions' && (
           <SessionManager 
             sessions={sessions}
             onSessionDelete={handleSessionDelete}
             onSessionSelect={setSelectedSessions}
+            onRefresh={loadSessions}
+            loading={sessionsLoading}
           />
         )}
       </main>
