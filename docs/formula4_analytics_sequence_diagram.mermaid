@@ -1,0 +1,203 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant APIGateway
+    participant AuthService
+    participant FileStorage
+    participant ProcessingQueue
+    participant TelemetryService
+    participant AiMParser
+    participant Database
+    participant AnalyticsEngine
+    participant CacheService
+    participant WebSocketService
+    participant ReportGenerator
+    
+    %% User Authentication Flow
+    Note over User, AuthService: User Authentication
+    User->>Frontend: Login with credentials
+    Frontend->>APIGateway: POST /api/auth/login
+    APIGateway->>AuthService: validateCredentials(email, password)
+    AuthService->>Database: SELECT user WHERE email = ?
+    Database-->>AuthService: Return user data
+    AuthService->>AuthService: verifyPassword(password, hashedPassword)
+    AuthService-->>APIGateway: Return JWT token
+    APIGateway-->>Frontend: Return authentication response
+    Frontend->>Frontend: Store JWT token
+    Frontend-->>User: Show dashboard
+    
+    %% File Upload and Processing Flow
+    Note over User, Database: Telemetry File Upload & Processing
+    User->>Frontend: Upload AiM CSV file (39 parameters)
+    Frontend->>Frontend: validateFileType(file)
+    Frontend->>APIGateway: POST /api/files/upload (with JWT)
+    APIGateway->>APIGateway: authenticateUser(JWT)
+    APIGateway->>APIGateway: validateFileSize(file)
+    APIGateway->>FileStorage: uploadFile(file, generatePath())
+    FileStorage-->>APIGateway: Return file URL
+    
+    APIGateway->>Database: INSERT INTO telemetry_files
+    Database-->>APIGateway: Return file ID
+    APIGateway->>ProcessingQueue: addJob('process-telemetry', {fileId, filePath})
+    APIGateway-->>Frontend: Return {fileId, status: 'uploaded'}
+    Frontend-->>User: Show upload success
+    
+    %% Async File Processing
+    ProcessingQueue->>TelemetryService: processFile(fileId, filePath)
+    TelemetryService->>FileStorage: downloadFile(filePath)
+    FileStorage-->>TelemetryService: Return file content
+    
+    TelemetryService->>AiMParser: parseFile(fileContent)
+    AiMParser->>AiMParser: extractMetadata(rows 1-16)
+    AiMParser->>AiMParser: parseHeaders(row 14)
+    AiMParser->>AiMParser: parseUnits(row 15)
+    AiMParser->>AiMParser: validateParameterCount(39)
+    AiMParser->>AiMParser: parseTelemetryData(row 17+)
+    AiMParser->>AiMParser: validateDataRanges()
+    AiMParser->>AiMParser: extractLapBoundaries()
+    AiMParser-->>TelemetryService: Return parsed data
+    
+    TelemetryService->>Database: INSERT INTO telemetry_metadata
+    TelemetryService->>Database: BATCH INSERT telemetry_data_points (39 params)
+    TelemetryService->>Database: INSERT INTO lap_data
+    TelemetryService->>Database: UPDATE telemetry_files SET status = 'processed'
+    TelemetryService->>WebSocketService: broadcastProcessingComplete(fileId)
+    WebSocketService-->>Frontend: Emit 'file_processed' event
+    Frontend-->>User: Show file ready for analysis
+    
+    %% Driver Comparison Analysis Flow
+    Note over User, ReportGenerator: Driver Comparison Analysis
+    User->>Frontend: Select two drivers for comparison
+    Frontend->>APIGateway: POST /api/analysis/compare
+    APIGateway->>APIGateway: authenticateUser(JWT)
+    APIGateway->>APIGateway: validateComparisonRequest()
+    
+    APIGateway->>CacheService: get(comparisonCacheKey)
+    alt Cache Hit
+        CacheService-->>APIGateway: Return cached results
+        APIGateway-->>Frontend: Return analysis results
+    else Cache Miss
+        APIGateway->>AnalyticsEngine: compareDrivers(driver1Data, driver2Data)
+        
+        AnalyticsEngine->>Database: SELECT * FROM telemetry_data_points WHERE file_id = ? AND lap_number = ?
+        Database-->>AnalyticsEngine: Return driver1 telemetry (39 params)
+        AnalyticsEngine->>Database: SELECT * FROM telemetry_data_points WHERE file_id = ? AND lap_number = ?
+        Database-->>AnalyticsEngine: Return driver2 telemetry (39 params)
+        
+        AnalyticsEngine->>AnalyticsEngine: alignTelemetryByDistance(d1Data, d2Data)
+        AnalyticsEngine->>AnalyticsEngine: calculateSpeedDifferences()
+        AnalyticsEngine->>AnalyticsEngine: calculateTimeDeltas()
+        AnalyticsEngine->>AnalyticsEngine: analyzeSectorPerformance()
+        
+        %% Advanced Analytics Parallel Processing
+        par Lambda Analysis
+            AnalyticsEngine->>AnalyticsEngine: analyzeLambdaEfficiency(lambdaData, rpmData)
+            AnalyticsEngine->>Database: INSERT INTO engine_metrics
+        and Braking Analysis
+            AnalyticsEngine->>AnalyticsEngine: analyzeBrakingPerformance(brakePress, brakePos)
+            AnalyticsEngine->>Database: INSERT INTO braking_metrics
+        and G-Force Analysis
+            AnalyticsEngine->>AnalyticsEngine: analyzeGForceEnvelope(latAcc, longAcc, vertAcc)
+            AnalyticsEngine->>Database: INSERT INTO handling_metrics
+        and Thermal Analysis
+            AnalyticsEngine->>AnalyticsEngine: analyzeThermalManagement(tempData)
+        end
+        
+        AnalyticsEngine->>Database: INSERT INTO comparison_analyses
+        AnalyticsEngine->>Database: BATCH INSERT delta_analysis
+        AnalyticsEngine->>Database: INSERT INTO sector_analysis
+        
+        AnalyticsEngine->>CacheService: set(comparisonCacheKey, results, 3600)
+        AnalyticsEngine-->>APIGateway: Return analysis results
+    end
+    
+    APIGateway-->>Frontend: Return comparison data
+    Frontend->>Frontend: renderSpeedChart(comparisonData)
+    Frontend->>Frontend: renderDeltaChart(deltaData)
+    Frontend->>Frontend: renderTrackMap3D(gpsData)
+    Frontend->>Frontend: renderLambdaChart(lambdaAnalysis)
+    Frontend->>Frontend: renderGForceChart(gforceAnalysis)
+    Frontend-->>User: Display interactive comparison dashboard
+    
+    %% Real-Time Collaboration Flow
+    Note over User, WebSocketService: Real-Time Collaboration
+    User->>Frontend: Move cursor on speed chart
+    Frontend->>WebSocketService: emit('cursor_update', {analysisId, position})
+    WebSocketService->>WebSocketService: validateUser(socketId)
+    WebSocketService->>WebSocketService: broadcastToRoom(analysisId, cursorData)
+    WebSocketService-->>Frontend: emit('cursor_moved', {userId, position})
+    Frontend->>Frontend: updateCursorPosition(position)
+    Frontend->>Frontend: synchronizeAllCharts(position)
+    Frontend-->>User: Show synchronized cursor across all charts
+    
+    %% Advanced Analytics Request Flow
+    Note over User, Database: Advanced Lambda Analysis
+    User->>Frontend: Request lambda efficiency analysis
+    Frontend->>APIGateway: GET /api/analysis/lambda/{fileId}/{lap}
+    APIGateway->>CacheService: get(lambdaAnalysisCacheKey)
+    
+    alt Cache Miss
+        APIGateway->>AnalyticsEngine: analyzeLambdaEfficiency(fileId, lapNumber)
+        AnalyticsEngine->>Database: SELECT lambda_value, engine_rpm, throttle_pos FROM telemetry_data_points
+        Database-->>AnalyticsEngine: Return lambda dataset
+        
+        AnalyticsEngine->>AnalyticsEngine: calculateAverageLambda()
+        AnalyticsEngine->>AnalyticsEngine: calculateLambdaConsistency()
+        AnalyticsEngine->>AnalyticsEngine: identifyOptimalZones(rpmBins)
+        AnalyticsEngine->>AnalyticsEngine: calculateFuelEfficiency()
+        AnalyticsEngine->>AnalyticsEngine: analyzePowerBand(rpmData, lambdaData)
+        AnalyticsEngine->>AnalyticsEngine: generateRecommendations()
+        
+        AnalyticsEngine->>CacheService: set(lambdaAnalysisCacheKey, results, 1800)
+        AnalyticsEngine-->>APIGateway: Return lambda analysis
+    else Cache Hit
+        CacheService-->>APIGateway: Return cached lambda analysis
+    end
+    
+    APIGateway-->>Frontend: Return lambda analysis data
+    Frontend->>Frontend: renderLambdaEfficiencyChart()
+    Frontend->>Frontend: renderPowerBandChart()
+    Frontend->>Frontend: displayRecommendations()
+    Frontend-->>User: Show lambda analysis dashboard
+    
+    %% Report Generation Flow
+    Note over User, ReportGenerator: PDF Report Generation
+    User->>Frontend: Request comparison report
+    Frontend->>APIGateway: GET /api/reports/comparison/{analysisId}
+    APIGateway->>ReportGenerator: generateComparisonReport(analysisId)
+    
+    ReportGenerator->>Database: SELECT * FROM comparison_analyses WHERE id = ?
+    Database-->>ReportGenerator: Return analysis data
+    ReportGenerator->>Database: SELECT * FROM delta_analysis WHERE comparison_id = ?
+    Database-->>ReportGenerator: Return delta data
+    ReportGenerator->>Database: SELECT * FROM sector_analysis WHERE comparison_id = ?
+    Database-->>ReportGenerator: Return sector data
+    
+    ReportGenerator->>ReportGenerator: generateCharts(analysisData)
+    ReportGenerator->>ReportGenerator: createPDFDocument()
+    ReportGenerator->>ReportGenerator: addMetrics(analysisData)
+    ReportGenerator->>ReportGenerator: addVisualization(charts)
+    ReportGenerator->>ReportGenerator: addRecommendations()
+    ReportGenerator->>FileStorage: uploadReport(pdfFile)
+    FileStorage-->>ReportGenerator: Return report URL
+    
+    ReportGenerator-->>APIGateway: Return report URL
+    APIGateway-->>Frontend: Return {reportUrl, expiresAt}
+    Frontend-->>User: Download PDF report
+    
+    %% Error Handling Flow
+    Note over APIGateway, Database: Error Handling
+    alt Processing Error
+        TelemetryService->>Database: UPDATE telemetry_files SET status = 'error'
+        TelemetryService->>WebSocketService: broadcastProcessingError(fileId, error)
+        WebSocketService-->>Frontend: Emit 'processing_error' event
+        Frontend-->>User: Show error notification
+    else Database Connection Error
+        Database-->>APIGateway: Connection timeout
+        APIGateway-->>Frontend: Return {error: 'Service temporarily unavailable'}
+        Frontend-->>User: Show retry option
+    else Authentication Error
+        APIGateway-->>Frontend: Return {error: 'Unauthorized', code: 401}
+        Frontend->>Frontend: clearAuthToken()
+        Frontend-->>User: Redirect to login
+    end

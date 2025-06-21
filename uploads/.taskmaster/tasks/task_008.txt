@@ -1,0 +1,64 @@
+# Task ID: 8
+# Title: Develop Speed and Engine Vitals Visualization
+# Status: pending
+# Dependencies: 6, 7
+# Priority: medium
+# Description: Create interactive visualizations for speed vs. distance and engine vitals using Plotly.js.
+# Details:
+1. Set up Plotly.js (v2.x) integration in the React application
+2. Create a reusable chart component with common functionality
+3. Implement Speed vs. Distance plot:
+   - Plot speed data for both drivers
+   - Add distance markers for track features
+   - Implement color coding for different drivers
+   - Add interactive tooltips
+4. Create Engine Vitals visualization:
+   - Plot RPM, water temperature, oil temperature
+   - Implement multi-axis support for different units
+   - Add threshold indicators for critical values
+5. Implement zoom and pan functionality
+6. Add export options (PNG, SVG, CSV)
+7. Create responsive design for different screen sizes
+8. Implement performance optimizations for large datasets
+9. Add custom styling to match the racing theme
+
+# Test Strategy:
+1. Test visualization with sample telemetry data
+2. Verify correct rendering on different browsers
+3. Test interactive features (zoom, pan, tooltips)
+4. Verify export functionality
+5. Test performance with large datasets
+6. Verify responsive behavior on different screen sizes
+7. Test accessibility of the visualizations
+
+# Subtasks:
+## 1. Set up Plotly.js Integration and Base Chart Component [pending]
+### Dependencies: None
+### Description: Install and configure Plotly.js v2.x in the React application and create a reusable base chart component with common functionality for all racing visualizations.
+### Details:
+Install plotly.js-dist package, create a BaseChart component with props for data, layout, and config. Implement common features like responsive sizing, theme integration, and error handling. Set up TypeScript interfaces for chart props and data structures.
+
+## 2. Implement Speed vs Distance Visualization [pending]
+### Dependencies: 8.1
+### Description: Create an interactive speed vs distance plot that displays speed data for both drivers with distance markers, color coding, and interactive tooltips.
+### Details:
+Extend BaseChart to create SpeedDistanceChart component. Implement dual-line plotting for two drivers with distinct colors, add distance markers for track features (turns, straights), create custom tooltips showing speed, distance, and driver info. Include legend and axis labeling.
+
+## 3. Create Engine Vitals Multi-Axis Visualization [pending]
+### Dependencies: 8.1
+### Description: Develop engine vitals visualization displaying RPM, water temperature, and oil temperature with multi-axis support and threshold indicators for critical values.
+### Details:
+Create EngineVitalsChart component with multiple y-axes for different units (RPM, temperature). Implement threshold lines for critical values (redline RPM, overheating temps). Use different line styles/colors for each metric. Add secondary y-axis configuration and proper scaling.
+
+## 4. Add Interactive Features and Export Functionality [pending]
+### Dependencies: 8.2, 8.3
+### Description: Implement zoom, pan, and export capabilities (PNG, SVG, CSV) for both chart types with performance optimizations for large datasets.
+### Details:
+Configure Plotly zoom and pan modes, implement export buttons using Plotly's toImage and downloadImage functions. Add CSV export by processing chart data. Implement data sampling and virtualization for large datasets. Add loading states and error handling for export operations.
+
+## 5. Apply Racing Theme Styling and Responsive Design [pending]
+### Dependencies: 8.4
+### Description: Implement custom racing-themed styling and ensure responsive design across different screen sizes with optimized layouts for mobile and desktop.
+### Details:
+Create racing-themed color palette (racing red, checkered flag patterns, metallic accents). Implement responsive breakpoints for mobile, tablet, and desktop. Adjust chart dimensions, font sizes, and control positioning. Add dark/light theme support. Optimize touch interactions for mobile devices.
+

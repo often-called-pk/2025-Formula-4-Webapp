@@ -9,5 +9,5 @@
     "current_line": 1,
     "window": 50,
     "enable_auto_lint": true,
-    "working_dir": "../workspace"
+    "working_dir": "/workspace"
 }

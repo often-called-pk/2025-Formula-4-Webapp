@@ -1,0 +1,60 @@
+# Task ID: 5
+# Title: Implement CSV File Upload and Storage
+# Status: done
+# Dependencies: 2, 3, 4
+# Priority: high
+# Description: Create a file upload system for telemetry CSV files with validation and storage in Supabase.
+# Details:
+1. Create a file upload component with drag-and-drop functionality
+2. Implement client-side validation for CSV files:
+   - Check file format and size
+   - Validate basic structure (headers, required columns)
+3. Create backend API endpoint for file upload processing
+4. Implement secure file upload to Supabase Storage
+5. Create metadata extraction function for CSV headers
+6. Store file references and metadata in the database
+7. Implement progress indicators for upload process
+8. Add error handling for failed uploads
+9. Create a file management interface for uploaded files
+10. Implement file deletion functionality
+
+# Test Strategy:
+1. Test file upload with valid CSV files
+2. Test validation with invalid files (wrong format, missing columns)
+3. Verify files are correctly stored in Supabase Storage
+4. Test metadata extraction accuracy
+5. Verify database entries are created correctly
+6. Test concurrent uploads
+7. Verify error handling for network issues
+
+# Subtasks:
+## 1. Create File Upload Component with Drag-and-Drop [done]
+### Dependencies: None
+### Description: Build a React component that handles file selection and drag-and-drop functionality for CSV files, including visual feedback and basic UI elements.
+### Details:
+Create a reusable upload component using React with drag-and-drop zones, file selection buttons, visual indicators for drag states, and basic file preview. Include styling for different states (idle, dragover, uploading, success, error). Implement file filtering to only accept CSV files.
+
+## 2. Implement Client-Side CSV Validation [done]
+### Dependencies: 5.1
+### Description: Add comprehensive validation logic to check CSV file format, size limits, structure, and required columns before upload.
+### Details:
+Create validation functions to check file size (max 10MB), MIME type, CSV structure parsing, header validation, and required column presence. Implement real-time feedback showing validation results. Use a CSV parsing library like Papa Parse for structure validation.
+
+## 3. Create Backend API Endpoint for File Processing [done]
+### Dependencies: None
+### Description: Develop a secure API endpoint that handles file upload requests, processes CSV files, and manages the upload workflow.
+### Details:
+Create a Next.js API route (/api/upload-csv) with multipart form data handling, file validation on server-side, temporary file storage, and integration with Supabase Storage. Implement authentication middleware and rate limiting. Handle file metadata extraction and error responses.
+
+## 4. Implement Supabase Storage Integration and Database Records [done]
+### Dependencies: 5.3
+### Description: Set up secure file storage in Supabase Storage and create database records for file metadata and references.
+### Details:
+Configure Supabase Storage bucket with appropriate policies, implement file upload to storage with unique naming, create database schema for file metadata (filename, size, upload_date, user_id, headers), and store file references. Implement CSV header extraction and metadata storage.
+
+## 5. Add Progress Tracking and File Management Interface [done]
+### Dependencies: 5.1, 5.2, 5.4
+### Description: Implement upload progress indicators, error handling, and a management interface for viewing, downloading, and deleting uploaded files.
+### Details:
+Add progress bars and status indicators to the upload component, implement comprehensive error handling with user-friendly messages, create a file management dashboard showing uploaded files with metadata, and add download/delete functionality. Include confirmation dialogs for destructive actions.
+
