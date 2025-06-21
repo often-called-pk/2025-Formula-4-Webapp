@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Configure Supabase Integration
-# Status: done
+# Status: incomplete
 # Dependencies: 1
 # Priority: high
 # Description: Set up and configure Supabase for authentication, database, and storage services.
